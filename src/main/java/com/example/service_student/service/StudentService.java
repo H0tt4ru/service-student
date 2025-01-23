@@ -19,7 +19,7 @@ import com.example.service_student.response.StudentResponse;
 import com.example.base_domain.repository.StudentRepository;
 import com.example.base_domain.repository.UserRepository;
 import com.example.base_domain.repository.WalletRepository;
-import com.example.service_student.utils.StudentValidation;
+import com.example.service_student.utils.StudentValidationStudent;
 import com.example.service_student.response.StudentAdminResponse;
 import com.example.service_student.response.StudentListResponse;
 
@@ -31,7 +31,7 @@ public class StudentService {
 
     private final StudentRepository studentRepository;
     private final UserRepository userRepository;
-    private final StudentValidation studentValidation;
+    private final StudentValidationStudent studentValidation;
     private final WalletRepository walletRepository;
 
     public ResponseEntity<Object> getStudents() throws Exception {

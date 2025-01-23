@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class StudentValidation {
+public class StudentValidationStudent {
 
     private final StudentRepository studentRepository;
 
