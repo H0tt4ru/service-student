@@ -19,10 +19,9 @@ import com.example.service_student.response.StudentResponse;
 import com.example.base_domain.repository.StudentRepository;
 import com.example.base_domain.repository.UserRepository;
 import com.example.base_domain.repository.WalletRepository;
-import com.example.service_student.utils.NIMGenerator;
 import com.example.service_student.utils.StudentValidation;
-import com.example.service_history.response.StudentAdminResponse;
-import com.example.service_history.response.StudentListResponse;
+import com.example.service_student.response.StudentAdminResponse;
+import com.example.service_student.response.StudentListResponse;
 
 import lombok.RequiredArgsConstructor;
 
@@ -34,7 +33,6 @@ public class StudentService {
     private final UserRepository userRepository;
     private final StudentValidation studentValidation;
     private final WalletRepository walletRepository;
-    private final NIMGenerator nimGenerator;
 
     public ResponseEntity<Object> getStudents() throws Exception {
         try {
@@ -138,29 +136,6 @@ public class StudentService {
                 }
             } else {
                 throw new Exception("4301");
-            }
-        } catch (Exception e) {
-            throw new Exception(e.getMessage());
-        }
-    }
-
-    public ResponseEntity<Object> createStudent(Student student) throws Exception {
-        try {
-            student.setNim(nimGenerator.generateUniqueNIM());
-            if (studentValidation.validateStudentNew(student)) {
-                Wallet wallet = new Wallet();
-                wallet.setNim(student.getNim());
-                wallet.setPoint(100);
-                studentRepository.save(student);
-                walletRepository.save(wallet);
-                StudentResponse response = new StudentResponse();
-                response.setResponseCode("2000");
-                response.setResponseMessage("Registration successful");
-                response.setStudent(student);
-                response.setWallet(wallet);
-                return new ResponseEntity<>(response, HttpStatus.OK);
-            } else {
-                throw new Exception("4101");
             }
         } catch (Exception e) {
             throw new Exception(e.getMessage());
