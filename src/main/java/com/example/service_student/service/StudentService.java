@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jms.annotation.JmsListener;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -145,6 +146,7 @@ public class StudentService {
         }
     }
 
+    @JmsListener(destination = "createStudent")
     public ResponseEntity<Object> createStudent(Student student) throws Exception {
         try {
             student.setStudentNim(nimGenerator.generateUniqueNIM());
