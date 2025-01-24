@@ -15,6 +15,7 @@ import com.example.base_domain.dto.model.Student;
 import com.example.base_domain.dto.model.User;
 import com.example.base_domain.dto.model.Wallet;
 import com.example.service_student.request.StudentUpdateRequest;
+import com.example.service_student.request.StudentNimRequest;
 import com.example.service_student.request.StudentRequest;
 import com.example.service_student.response.StudentResponse;
 import com.example.base_domain.repository.StudentRepository;
@@ -60,7 +61,7 @@ public class StudentService {
         }
     }
 
-    public ResponseEntity<Object> getStudent(StudentRequest studentRequest) throws Exception {
+    public ResponseEntity<Object> getStudent(StudentNimRequest studentRequest) throws Exception {
         try {
             Optional<Student> student = studentRepository.findByStudentNim(studentRequest.getStudentNim());
             if (student.isPresent()) {
@@ -79,7 +80,7 @@ public class StudentService {
         }
     }
 
-    public ResponseEntity<Object> deleteStudent(StudentRequest studentRequest) throws Exception {
+    public ResponseEntity<Object> deleteStudent(StudentNimRequest studentRequest) throws Exception {
         try {
             Optional<Student> student = studentRepository.findByStudentNim(studentRequest.getStudentNim());
             if (student.isPresent()) {
@@ -101,10 +102,17 @@ public class StudentService {
     public ResponseEntity<Object> updateStudent(StudentUpdateRequest studentUpdateRequest) throws Exception {
         try {
             Optional<Student> student = studentRepository
-                    .findByWalletOwnerShipNim(studentUpdateRequest.getStudentNim());
+                    .findByStudentNim(studentUpdateRequest.getStudentNim());
             Optional<Wallet> wallet = walletRepository.findByWalletOwnershipNim(student.get().getStudentNim());
             if (student.isPresent()) {
-                if (studentValidation.validateStudentUpdate(studentUpdateRequest.getStudent())) {
+                Student studentData = Student.builder().fullName(studentUpdateRequest.getStudent().getFullName())
+                        .gender(studentUpdateRequest.getStudent().getGender())
+                        .dob(studentUpdateRequest.getStudent().getDob())
+                        .major(studentUpdateRequest.getStudent().getMajor())
+                        .phoneNumber(studentUpdateRequest.getStudent().getPhoneNumber())
+                        .address(studentUpdateRequest.getStudent().getAddress()).build();
+
+                if (studentValidation.validateStudentUpdate(studentData)) {
                     if (studentUpdateRequest.getStudent().getFullName() != null
                             && !studentUpdateRequest.getStudent().getFullName().isBlank()) {
                         student.get().setFullName(studentUpdateRequest.getStudent().getFullName());
@@ -187,7 +195,7 @@ public class StudentService {
         }
     }
 
-    public ResponseEntity<Object> updateProfile(Student student) throws Exception {
+    public ResponseEntity<Object> updateProfile(StudentRequest student) throws Exception {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String email = authentication.getName();
@@ -195,7 +203,7 @@ public class StudentService {
             Optional<Student> studentOptional = studentRepository.findByStudentNim(user.get().getStudentNim());
             if (studentOptional.isPresent()) {
                 StudentUpdateRequest studentUpdateRequest = new StudentUpdateRequest();
-                studentUpdateRequest.setNim(user.get().getStudentNim());
+                studentUpdateRequest.setStudentNim(user.get().getStudentNim());
                 studentUpdateRequest.setStudent(student);
                 return updateStudent(studentUpdateRequest);
             } else {
@@ -212,7 +220,7 @@ public class StudentService {
             String email = authentication.getName();
             Optional<User> user = userRepository.findByEmail(email);
             Optional<Student> student = studentRepository.findByStudentNim(user.get().getStudentNim());
-            Optional<Wallet> wallet = walletRepository.findByWalletOwnerShipNim(user.get().getStudentNim());
+            Optional<Wallet> wallet = walletRepository.findByWalletOwnershipNim(user.get().getStudentNim());
             if (student.isPresent()) {
                 walletRepository.delete(wallet.get());
                 studentRepository.delete(student.get());

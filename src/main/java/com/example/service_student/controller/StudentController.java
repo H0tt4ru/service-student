@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.base_domain.dto.model.Student;
+import com.example.service_student.request.StudentRequest;
 import com.example.service_student.service.StudentService;
 
 import lombok.RequiredArgsConstructor;
@@ -27,7 +28,7 @@ public class StudentController {
     }
 
     @PutMapping("/student/update-profile")
-    public ResponseEntity<Object> updateProfile(@RequestBody Student student) throws Exception {
+    public ResponseEntity<Object> updateProfile(@RequestBody StudentRequest student) throws Exception {
         return studentService.updateProfile(student);
     }
 

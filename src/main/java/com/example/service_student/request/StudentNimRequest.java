@@ -9,8 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class StudentUpdateRequest {
+public class StudentNimRequest {
 
     private String studentNim;
-    private StudentRequest student;
 }
