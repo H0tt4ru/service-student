@@ -19,7 +19,8 @@ import com.example.service_student.response.StudentResponse;
 import com.example.base_domain.repository.StudentRepository;
 import com.example.base_domain.repository.UserRepository;
 import com.example.base_domain.repository.WalletRepository;
-import com.example.service_student.utils.StudentValidationStudent;
+import com.example.shared_utils.utils.NIMGenerator;
+import com.example.shared_utils.utils.StudentValidation;
 import com.example.service_student.response.StudentAdminResponse;
 import com.example.service_student.response.StudentListResponse;
 
@@ -31,8 +32,9 @@ public class StudentService {
 
     private final StudentRepository studentRepository;
     private final UserRepository userRepository;
-    private final StudentValidationStudent studentValidation;
+    private final StudentValidation studentValidation;
     private final WalletRepository walletRepository;
+    private final NIMGenerator nimGenerator;
 
     public ResponseEntity<Object> getStudents() throws Exception {
         try {
@@ -40,7 +42,7 @@ public class StudentService {
             List<Object> studentResponses = new ArrayList<>();
 
             for (Student student : students) {
-                Optional<Wallet> wallet = walletRepository.findByNim(student.getNim());
+                Optional<Wallet> wallet = walletRepository.findByWalletOwnershipNim(student.getStudentNim());
                 StudentAdminResponse studentResponse = new StudentAdminResponse();
                 studentResponse.setStudent(student);
                 studentResponse.setWallet(wallet.get());
@@ -59,9 +61,9 @@ public class StudentService {
 
     public ResponseEntity<Object> getStudent(StudentRequest studentRequest) throws Exception {
         try {
-            Optional<Student> student = studentRepository.findByNim(studentRequest.getNim());
+            Optional<Student> student = studentRepository.findByStudentNim(studentRequest.getStudentNim());
             if (student.isPresent()) {
-                Optional<Wallet> wallet = walletRepository.findByNim(studentRequest.getNim());
+                Optional<Wallet> wallet = walletRepository.findByWalletOwnershipNim(studentRequest.getStudentNim());
                 StudentResponse response = new StudentResponse();
                 response.setResponseCode("2002");
                 response.setResponseMessage("Student data retrieved successfully");
@@ -78,14 +80,14 @@ public class StudentService {
 
     public ResponseEntity<Object> deleteStudent(StudentRequest studentRequest) throws Exception {
         try {
-            Optional<Student> student = studentRepository.findByNim(studentRequest.getNim());
+            Optional<Student> student = studentRepository.findByStudentNim(studentRequest.getStudentNim());
             if (student.isPresent()) {
                 studentRepository.delete(student.get());
                 StudentResponse response = new StudentResponse();
                 response.setResponseCode("2002");
                 response.setResponseMessage("Student data retrieved successfully");
                 response.setStudent(student.get());
-                response.setWallet(walletRepository.findByNim(studentRequest.getNim()).get());
+                response.setWallet(walletRepository.findByWalletOwnerShipNim(studentRequest.getStudentNim()).get());
                 return new ResponseEntity<>(response, HttpStatus.OK);
             } else {
                 throw new Exception("4301");
@@ -97,8 +99,9 @@ public class StudentService {
 
     public ResponseEntity<Object> updateStudent(StudentUpdateRequest studentUpdateRequest) throws Exception {
         try {
-            Optional<Student> student = studentRepository.findByNim(studentUpdateRequest.getNim());
-            Optional<Wallet> wallet = walletRepository.findByNim(student.get().getNim());
+            Optional<Student> student = studentRepository
+                    .findByWalletOwnerShipNim(studentUpdateRequest.getStudentNim());
+            Optional<Wallet> wallet = walletRepository.findByWalletOwnerShipNim(student.get().getStudentNim());
             if (student.isPresent()) {
                 if (studentValidation.validateStudentUpdate(studentUpdateRequest.getStudent())) {
                     if (studentUpdateRequest.getStudent().getFullName() != null
@@ -142,13 +145,36 @@ public class StudentService {
         }
     }
 
+    public ResponseEntity<Object> createStudent(Student student) throws Exception {
+        try {
+            student.setStudentNim(nimGenerator.generateUniqueNIM());
+            if (studentValidation.validateStudentNew(student)) {
+                Wallet wallet = new Wallet();
+                wallet.setWalletOwnershipNim(student.getStudentNim());
+                wallet.setBalance(100);
+                studentRepository.save(student);
+                walletRepository.save(wallet);
+                StudentResponse response = new StudentResponse();
+                response.setResponseCode("2000");
+                response.setResponseMessage("Registration successful");
+                response.setStudent(student);
+                response.setWallet(wallet);
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            } else {
+                throw new Exception("4101");
+            }
+        } catch (Exception e) {
+            throw new Exception(e.getMessage());
+        }
+    }
+
     public ResponseEntity<Object> getMyProfile() throws Exception {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String email = authentication.getName();
             Optional<User> user = userRepository.findByEmail(email);
-            Optional<Student> student = studentRepository.findByNim(user.get().getStudentNim());
-            Optional<Wallet> wallet = walletRepository.findByNim(user.get().getStudentNim());
+            Optional<Student> student = studentRepository.findByStudentNim(user.get().getStudentNim());
+            Optional<Wallet> wallet = walletRepository.findByWalletOwnerShipNim(user.get().getStudentNim());
             if (student.isPresent()) {
                 StudentResponse response = new StudentResponse();
                 response.setResponseCode("2002");
@@ -169,7 +195,7 @@ public class StudentService {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String email = authentication.getName();
             Optional<User> user = userRepository.findByEmail(email);
-            Optional<Student> studentOptional = studentRepository.findByNim(user.get().getStudentNim());
+            Optional<Student> studentOptional = studentRepository.findByStudentNim(user.get().getStudentNim());
             if (studentOptional.isPresent()) {
                 StudentUpdateRequest studentUpdateRequest = new StudentUpdateRequest();
                 studentUpdateRequest.setNim(user.get().getStudentNim());
@@ -188,8 +214,8 @@ public class StudentService {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String email = authentication.getName();
             Optional<User> user = userRepository.findByEmail(email);
-            Optional<Student> student = studentRepository.findByNim(user.get().getStudentNim());
-            Optional<Wallet> wallet = walletRepository.findByNim(user.get().getStudentNim());
+            Optional<Student> student = studentRepository.findByStudentNim(user.get().getStudentNim());
+            Optional<Wallet> wallet = walletRepository.findByWalletOwnerShipNim(user.get().getStudentNim());
             if (student.isPresent()) {
                 walletRepository.delete(wallet.get());
                 studentRepository.delete(student.get());
