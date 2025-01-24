@@ -88,7 +88,7 @@ public class StudentService {
                 response.setResponseCode("2002");
                 response.setResponseMessage("Student data retrieved successfully");
                 response.setStudent(student.get());
-                response.setWallet(walletRepository.findByWalletOwnerShipNim(studentRequest.getStudentNim()).get());
+                response.setWallet(walletRepository.findByWalletOwnershipNim(studentRequest.getStudentNim()).get());
                 return new ResponseEntity<>(response, HttpStatus.OK);
             } else {
                 throw new Exception("4301");
@@ -102,7 +102,7 @@ public class StudentService {
         try {
             Optional<Student> student = studentRepository
                     .findByWalletOwnerShipNim(studentUpdateRequest.getStudentNim());
-            Optional<Wallet> wallet = walletRepository.findByWalletOwnerShipNim(student.get().getStudentNim());
+            Optional<Wallet> wallet = walletRepository.findByWalletOwnershipNim(student.get().getStudentNim());
             if (student.isPresent()) {
                 if (studentValidation.validateStudentUpdate(studentUpdateRequest.getStudent())) {
                     if (studentUpdateRequest.getStudent().getFullName() != null
@@ -147,7 +147,7 @@ public class StudentService {
     }
 
     @JmsListener(destination = "createStudent")
-    public ResponseEntity<Object> createStudent(Student student) throws Exception {
+    public Student createStudent(Student student) throws Exception {
         try {
             student.setStudentNim(nimGenerator.generateUniqueNIM());
             if (studentValidation.validateStudentNew(student)) {
@@ -156,12 +156,7 @@ public class StudentService {
                 wallet.setBalance(100);
                 studentRepository.save(student);
                 walletRepository.save(wallet);
-                StudentResponse response = new StudentResponse();
-                response.setResponseCode("2000");
-                response.setResponseMessage("Registration successful");
-                response.setStudent(student);
-                response.setWallet(wallet);
-                return new ResponseEntity<>(response, HttpStatus.OK);
+                return student;
             } else {
                 throw new Exception("4101");
             }
@@ -176,7 +171,7 @@ public class StudentService {
             String email = authentication.getName();
             Optional<User> user = userRepository.findByEmail(email);
             Optional<Student> student = studentRepository.findByStudentNim(user.get().getStudentNim());
-            Optional<Wallet> wallet = walletRepository.findByWalletOwnerShipNim(user.get().getStudentNim());
+            Optional<Wallet> wallet = walletRepository.findByWalletOwnershipNim(user.get().getStudentNim());
             if (student.isPresent()) {
                 StudentResponse response = new StudentResponse();
                 response.setResponseCode("2002");
